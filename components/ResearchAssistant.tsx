@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { getGroundedAnswer } from '../services/geminiService';
 import { GroundingChunk } from '../types';
 import { Spinner } from './Spinner';
+import { ApiKeySelector } from './ApiKeySelector';
 
 export const ResearchAssistant: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [result, setResult] = useState<{ text: string, sources: GroundingChunk[] } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiKeySelected, setApiKeySelected] = useState(false);
 
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
@@ -19,11 +21,26 @@ export const ResearchAssistant: React.FC = () => {
       const response = await getGroundedAnswer(prompt);
       setResult(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+      if (message.includes("Requested entity was not found")) {
+          setError("API Key error. Please re-select your API key.");
+          setApiKeySelected(false);
+      } else {
+          setError(message);
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!apiKeySelected) {
+    return (
+        <div className="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
+            {error && <div className="bg-red-900/50 border border-red-500 text-red-300 p-4 rounded-lg mb-4 text-center">{error}</div>}
+            <ApiKeySelector onKeySelected={() => { setApiKeySelected(true); setError(null); }} />
+        </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -62,7 +79,8 @@ export const ResearchAssistant: React.FC = () => {
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-300 mb-2">Sources:</h3>
               <ul className="list-disc list-inside space-y-1">
-                {result.sources.map((source, index) => source.web && (
+                {/* FIX: Add check for source.web.uri to prevent rendering links with no href. */}
+                {result.sources.map((source, index) => source.web && source.web.uri && (
                   <li key={index}>
                     <a
                       href={source.web.uri}

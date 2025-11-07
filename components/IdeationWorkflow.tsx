@@ -206,8 +206,6 @@ export const IdeationWorkflow: React.FC = () => {
           {stage === 'VIDEO' && (
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
               <h3 className="text-xl font-semibold mb-4">3. Generate Video</h3>
-              {!apiKeySelected ? <ApiKeySelector onKeySelected={() => setApiKeySelected(true)} /> :
-              (
                 <>
                 <p className="text-gray-400 mb-4">Describe the action or animation for your video.</p>
                 <input
@@ -231,7 +229,6 @@ export const IdeationWorkflow: React.FC = () => {
                     Back to Editing
                 </button>
               </>
-              )}
             </div>
           )}
         </div>
@@ -277,6 +274,13 @@ export const IdeationWorkflow: React.FC = () => {
     );
   };
 
+  if (!apiKeySelected) {
+    return (
+        <div className="mt-8">
+            <ApiKeySelector onKeySelected={() => setApiKeySelected(true)} />
+        </div>
+    );
+  }
 
   return (
     <div className="w-full">

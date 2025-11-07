@@ -46,10 +46,9 @@ export const ApiKeySelector: React.FC<ApiKeySelectorProps> = ({ onKeySelected })
 
   return (
     <div className="p-6 bg-yellow-900/30 border border-yellow-600 rounded-lg text-center">
-      <h3 className="text-xl font-semibold text-yellow-300 mb-2">Action Required: Select API Key for Video Generation</h3>
+      <h3 className="text-xl font-semibold text-yellow-300 mb-2">Action Required: Select Your API Key</h3>
       <p className="mb-4 text-yellow-200">
-        The Veo video generation model requires you to select your own API key. This is a mandatory step.
-        Please ensure your project has billing enabled.
+        This application requires a Google AI API key to function. The Veo model for video generation also requires that your associated project has billing enabled.
       </p>
       <div className="flex items-center justify-center space-x-4">
         <button

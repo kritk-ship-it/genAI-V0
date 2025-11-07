@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Visual Ideation Suite",
+  "description": "An integrated visual ideation app that accepts text and image input to generate a starting image, allows for iterative text-based image refinement, and synthesizes the refined image into a high-quality video using Gemini and Veo models.",
+  "requestFramePermissions": []
+}

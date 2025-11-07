@@ -22,12 +22,7 @@ const StageIndicator: React.FC<{ currentStage: IdeationStage; stage: IdeationSta
   );
 };
 
-interface IdeationWorkflowProps {
-  apiKey: string;
-  clearApiKey: () => void;
-}
-
-export const IdeationWorkflow: React.FC<IdeationWorkflowProps> = ({ apiKey, clearApiKey }) => {
+export const IdeationWorkflow: React.FC = () => {
   const [stage, setStage] = useState<IdeationStage>('GENERATE');
   const [currentImage, setCurrentImage] = useState<ImageData | null>(null);
   const [prompt, setPrompt] = useState<string>('');
@@ -43,8 +38,7 @@ export const IdeationWorkflow: React.FC<IdeationWorkflowProps> = ({ apiKey, clea
     console.error(err);
     const message = err instanceof Error ? err.message : 'An unknown error occurred.';
     if (message.toLowerCase().includes("api key")) {
-        setError("API Key not valid. Please enter a valid API key to continue.");
-        clearApiKey();
+        setError("API Key not valid. Please ensure it is configured correctly in your environment variables.");
     } else {
         setError(message);
     }
@@ -59,7 +53,7 @@ export const IdeationWorkflow: React.FC<IdeationWorkflowProps> = ({ apiKey, clea
     setError(null);
     setLoading({ active: true, message: 'Generating initial concept...' });
     try {
-      const image = await generateInitialImage(apiKey, prompt);
+      const image = await generateInitialImage(prompt);
       setCurrentImage(image);
       setStage('EDIT');
       setPrompt('');
@@ -79,7 +73,7 @@ export const IdeationWorkflow: React.FC<IdeationWorkflowProps> = ({ apiKey, clea
     setError(null);
     setLoading({ active: true, message: 'Applying edits...' });
     try {
-      const editedImage = await editImage(apiKey, prompt, currentImage);
+      const editedImage = await editImage(prompt, currentImage);
       setCurrentImage(editedImage);
       setPrompt('');
     } catch (err) {
@@ -118,7 +112,7 @@ export const IdeationWorkflow: React.FC<IdeationWorkflowProps> = ({ apiKey, clea
     setVideoUrl(null);
 
     try {
-        const url = await generateVideo(apiKey, videoPrompt, currentImage, aspectRatio, (message) => {
+        const url = await generateVideo(videoPrompt, currentImage, aspectRatio, (message) => {
             setLoading({ active: true, message });
         });
         setVideoUrl(url);

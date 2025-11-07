@@ -3,12 +3,7 @@ import { getGroundedAnswer } from '../services/geminiService';
 import { GroundingChunk } from '../types';
 import { Spinner } from './Spinner';
 
-interface ResearchAssistantProps {
-  apiKey: string;
-  clearApiKey: () => void;
-}
-
-export const ResearchAssistant: React.FC<ResearchAssistantProps> = ({ apiKey, clearApiKey }) => {
+export const ResearchAssistant: React.FC = () => {
   const [prompt, setPrompt] = useState<string>('');
   const [result, setResult] = useState<{ text: string, sources: GroundingChunk[] } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,13 +15,12 @@ export const ResearchAssistant: React.FC<ResearchAssistantProps> = ({ apiKey, cl
     setError(null);
     setResult(null);
     try {
-      const response = await getGroundedAnswer(apiKey, prompt);
+      const response = await getGroundedAnswer(prompt);
       setResult(response);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unknown error occurred.';
       if (message.toLowerCase().includes("api key")) {
-          setError("API Key not valid. Please enter a valid API key to continue.");
-          clearApiKey();
+          setError("API Key not valid. Please ensure it is configured correctly in your environment variables.");
       } else {
           setError(message);
       }

@@ -1,11 +1,10 @@
 import { GoogleGenAI, Modality } from "@google/genai";
-// FIX: Removed the `declare global` block and `AIStudio` import. The global type for `window.aistudio` is now centralized in `types.ts` to resolve duplicate declaration errors.
 import { ImageData, AspectRatio, GroundingChunk } from '../types';
 
-const getAiClient = () => new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+const getAiClient = (apiKey: string) => new GoogleGenAI({ apiKey });
 
-export const generateInitialImage = async (prompt: string): Promise<ImageData> => {
-  const ai = getAiClient();
+export const generateInitialImage = async (apiKey: string, prompt: string): Promise<ImageData> => {
+  const ai = getAiClient(apiKey);
   const response = await ai.models.generateImages({
     model: 'imagen-4.0-generate-001',
     prompt,
@@ -20,8 +19,8 @@ export const generateInitialImage = async (prompt: string): Promise<ImageData> =
   return { base64: base64ImageBytes, mimeType: 'image/png' };
 };
 
-export const editImage = async (prompt: string, image: ImageData): Promise<ImageData> => {
-  const ai = getAiClient();
+export const editImage = async (apiKey: string, prompt: string, image: ImageData): Promise<ImageData> => {
+  const ai = getAiClient(apiKey);
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
@@ -53,12 +52,13 @@ export const editImage = async (prompt: string, image: ImageData): Promise<Image
 
 
 export const generateVideo = async (
+    apiKey: string,
     prompt: string, 
     image: ImageData, 
     aspectRatio: AspectRatio,
     setLoadingMessage: (message: string) => void
 ): Promise<string> => {
-    const ai = getAiClient();
+    const ai = getAiClient(apiKey);
     setLoadingMessage("Initiating video generation...");
     let operation = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
@@ -88,7 +88,7 @@ export const generateVideo = async (
         throw new Error("Video generation completed, but no download link was found.");
     }
 
-    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const response = await fetch(`${downloadLink}&key=${apiKey}`);
     if (!response.ok) {
         throw new Error(`Failed to download video: ${response.statusText}`);
     }
@@ -96,8 +96,8 @@ export const generateVideo = async (
     return URL.createObjectURL(videoBlob);
 };
 
-export const getGroundedAnswer = async (prompt: string): Promise<{ text: string, sources: GroundingChunk[] }> => {
-    const ai = getAiClient();
+export const getGroundedAnswer = async (apiKey: string, prompt: string): Promise<{ text: string, sources: GroundingChunk[] }> => {
+    const ai = getAiClient(apiKey);
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,

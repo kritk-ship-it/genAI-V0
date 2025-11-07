@@ -1,10 +1,8 @@
-
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { generateInitialImage, editImage, generateVideo } from '../services/geminiService';
 import { fileToImageData } from '../utils/fileUtils';
 import { ImageData, IdeationStage, AspectRatio, LoadingState } from '../types';
 import { Spinner } from './Spinner';
-import { ApiKeySelector } from './ApiKeySelector';
 
 const StageIndicator: React.FC<{ currentStage: IdeationStage; stage: IdeationStage; title: string }> = ({ currentStage, stage, title }) => {
   const isActive = currentStage === stage;
@@ -24,8 +22,12 @@ const StageIndicator: React.FC<{ currentStage: IdeationStage; stage: IdeationSta
   );
 };
 
+interface IdeationWorkflowProps {
+  apiKey: string;
+  clearApiKey: () => void;
+}
 
-export const IdeationWorkflow: React.FC = () => {
+export const IdeationWorkflow: React.FC<IdeationWorkflowProps> = ({ apiKey, clearApiKey }) => {
   const [stage, setStage] = useState<IdeationStage>('GENERATE');
   const [currentImage, setCurrentImage] = useState<ImageData | null>(null);
   const [prompt, setPrompt] = useState<string>('');
@@ -33,7 +35,6 @@ export const IdeationWorkflow: React.FC = () => {
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
   const [loading, setLoading] = useState<LoadingState>({ active: false, message: '' });
   const [error, setError] = useState<string | null>(null);
-  const [apiKeySelected, setApiKeySelected] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoPromptRef = useRef<HTMLInputElement>(null);
@@ -41,9 +42,9 @@ export const IdeationWorkflow: React.FC = () => {
   const handleError = (err: any) => {
     console.error(err);
     const message = err instanceof Error ? err.message : 'An unknown error occurred.';
-    if (message.includes("Requested entity was not found")) {
-        setError("API Key error. Please re-select your API key.");
-        setApiKeySelected(false);
+    if (message.toLowerCase().includes("api key")) {
+        setError("API Key not valid. Please enter a valid API key to continue.");
+        clearApiKey();
     } else {
         setError(message);
     }
@@ -58,7 +59,7 @@ export const IdeationWorkflow: React.FC = () => {
     setError(null);
     setLoading({ active: true, message: 'Generating initial concept...' });
     try {
-      const image = await generateInitialImage(prompt);
+      const image = await generateInitialImage(apiKey, prompt);
       setCurrentImage(image);
       setStage('EDIT');
       setPrompt('');
@@ -78,7 +79,7 @@ export const IdeationWorkflow: React.FC = () => {
     setError(null);
     setLoading({ active: true, message: 'Applying edits...' });
     try {
-      const editedImage = await editImage(prompt, currentImage);
+      const editedImage = await editImage(apiKey, prompt, currentImage);
       setCurrentImage(editedImage);
       setPrompt('');
     } catch (err) {
@@ -117,7 +118,7 @@ export const IdeationWorkflow: React.FC = () => {
     setVideoUrl(null);
 
     try {
-        const url = await generateVideo(videoPrompt, currentImage, aspectRatio, (message) => {
+        const url = await generateVideo(apiKey, videoPrompt, currentImage, aspectRatio, (message) => {
             setLoading({ active: true, message });
         });
         setVideoUrl(url);
@@ -273,14 +274,6 @@ export const IdeationWorkflow: React.FC = () => {
       </div>
     );
   };
-
-  if (!apiKeySelected) {
-    return (
-        <div className="mt-8">
-            <ApiKeySelector onKeySelected={() => setApiKeySelected(true)} />
-        </div>
-    );
-  }
 
   return (
     <div className="w-full">

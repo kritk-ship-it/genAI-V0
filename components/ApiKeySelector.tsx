@@ -1,70 +1,54 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 
 interface ApiKeySelectorProps {
-  onKeySelected: () => void;
+  onKeySelected: (key: string) => void;
 }
 
 export const ApiKeySelector: React.FC<ApiKeySelectorProps> = ({ onKeySelected }) => {
-  const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [apiKey, setApiKey] = useState('');
 
-  const checkApiKey = useCallback(async () => {
-    if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
-      const keyStatus = await window.aistudio.hasSelectedApiKey();
-      setHasKey(keyStatus);
-      if(keyStatus) {
-        onKeySelected();
-      }
-    } else {
-        // Mock aistudio for local development if it doesn't exist
-        console.warn("window.aistudio not found. Assuming API key is selected for development.");
-        setHasKey(true);
-        onKeySelected();
-    }
-  }, [onKeySelected]);
-  
-  useEffect(() => {
-    checkApiKey();
-  }, [checkApiKey]);
-
-  const handleSelectKey = async () => {
-    if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
-      await window.aistudio.openSelectKey();
-      // Assume success to avoid race condition and re-enable UI
-      setHasKey(true);
-      onKeySelected();
-    }
+  const handleSave = () => {
+    onKeySelected(apiKey.trim());
   };
 
-  if (hasKey === null) {
-    return <div className="text-center p-4">Checking API key status...</div>;
-  }
-
-  if (hasKey) {
-    return null; // Key is selected, render nothing.
-  }
-
   return (
-    <div className="p-6 bg-yellow-900/30 border border-yellow-600 rounded-lg text-center">
-      <h3 className="text-xl font-semibold text-yellow-300 mb-2">Action Required: Select Your API Key</h3>
-      <p className="mb-4 text-yellow-200">
-        This application requires a Google AI API key to function. The Veo model for video generation also requires that your associated project has billing enabled.
-      </p>
-      <div className="flex items-center justify-center space-x-4">
-        <button
-          onClick={handleSelectKey}
-          className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-2 px-4 rounded transition-colors"
-        >
-          Select API Key
-        </button>
-        <a
-          href="https://ai.google.dev/gemini-api/docs/billing"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-yellow-300 hover:text-yellow-200 underline"
-        >
-          Billing Information
-        </a>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="w-full max-w-md mx-auto p-8 bg-gray-800 rounded-lg shadow-2xl">
+        <h2 className="text-2xl font-bold text-center text-white mb-2">
+          Gemini Visual Ideation Suite
+        </h2>
+        <p className="text-center text-gray-400 mb-6">
+          Please enter your Google AI API key to continue.
+        </p>
+        <div className="space-y-4">
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            placeholder="Enter your API key"
+            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            onClick={handleSave}
+            disabled={!apiKey.trim()}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+          >
+            Save and Continue
+          </button>
+        </div>
+        <p className="text-center text-xs text-gray-500 mt-6">
+          Your API key is stored only in your browser's local storage.
+          <br />
+          <a
+            href="https://ai.google.dev/gemini-api/docs/api-key"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-400 hover:underline"
+          >
+            Get an API Key
+          </a>
+        </p>
       </div>
     </div>
   );
